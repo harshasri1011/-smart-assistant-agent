@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Personal Assistant Agent — Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#11151c;
+    --surface:#1a202b;
+    --surface-2:#222b37;
+    --border:#2b333f;
+    --text:#e7eaf0;
+    --muted:#7c8696;
+    --amber:#e8a33d;
+    --amber-dim:rgba(232,163,61,0.14);
+    --teal:#4fa8a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:radial-gradient(circle at 20% 0%, #161c25 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px;
+    min-height:100vh;
+  }
+  .app{
+    width:100%;
+    max-width:760px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .display{font-family:'Space Grotesk', sans-serif;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 22px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  header h1{
+    font-size:17px;
+    letter-spacing:0.02em;
+    margin:0 0 4px 0;
+    font-weight:700;
+  }
+  header p{margin:0;color:var(--muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase;}
+  .status{
+    display:flex;align-items:center;gap:7px;
+    font-size:11px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:.05em;
+    white-space:nowrap;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(79,168,160,0.18);}
+
+  /* ---------- Pipeline tracker (signature element) ---------- */
+  .pipeline{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px 18px;
+    display:flex;
+    gap:6px;
+  }
+  .stage{
+    flex:1;
+    text-align:center;
+    padding:9px 4px;
+    border-radius:8px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--muted);
+    text-transform:uppercase;
+    transition:background .25s, color .25s, border-color .25s, transform .25s;
+  }
+  .stage.active{
+    background:var(--amber-dim);
+    color:var(--amber);
+    border-color:var(--amber);
+    transform:translateY(-2px);
+  }
+
+  /* ---------- Tool chips ---------- */
+  .tools{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:11px;
+    color:var(--muted);
+    font-family:'Space Grotesk',sans-serif;
+    letter-spacing:.03em;
+    transition:all .3s;
+  }
+  .chip .ico{font-size:13px;}
+  .chip.fire{
+    border-color:var(--teal);
+    color:var(--teal);
+    background:rgba(79,168,160,0.12);
+  }
+
+  /* ---------- Chat window ---------- */
+  .chatwrap{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:340px;
+    overflow:hidden;
+  }
+  .chat{
+    flex:1;
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .msg{max-width:88%;white-space:pre-wrap;}
+  .msg .who{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:3px;
+    display:block;
+  }
+  .msg.you{align-self:flex-end;text-align:right;}
+  .msg.you .who{color:var(--teal);}
+  .msg.you .bubble{background:var(--surface-2);border:1px solid var(--border);border-radius:10px 10px 2px 10px;padding:9px 12px;display:inline-block;}
+  .msg.agent .who{color:var(--amber);}
+  .msg.agent .bubble{background:var(--amber-dim);border:1px solid rgba(232,163,61,0.35);border-radius:10px 10px 10px 2px;padding:9px 12px;display:inline-block;}
+
+  form{
+    display:flex;
+    border-top:1px solid var(--border);
+    padding:10px;
+    gap:8px;
+  }
+  input[type="text"]{
+    flex:1;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 13px;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+  input[type="text"]:focus-visible, button:focus-visible{outline:2px solid var(--amber);outline-offset:1px;}
+  input[type="text"]::placeholder{color:var(--muted);}
+  button{
+    background:var(--amber);
+    color:#1a1300;
+    border:none;
+    border-radius:10px;
+    padding:0 18px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition:filter .2s;
+  }
+  button:hover{filter:brightness(1.08);}
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    letter-spacing:.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stage{transition:none;}
+    button{transition:none;}
+  }
+  @media (max-width:480px){
+    .stage{font-size:9px;padding:7px 2px;}
+    header{flex-direction:column;align-items:flex-start;gap:6px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div>
+      <h1 class="display">SMART PERSONAL ASSISTANT AGENT</h1>
+      <p>agentic ai &middot; mini project &middot; live demo</p>
+    </div>
+    <div class="status"><span class="dot"></span>AGENT ONLINE</div>
+  </header>
+
+  <div class="pipeline" id="pipeline">
+    <div class="stage" data-stage="perceive">Perceive</div>
+    <div class="stage" data-stage="decide">Decide</div>
+    <div class="stage" data-stage="act">Act</div>
+    <div class="stage" data-stage="respond">Respond</div>
+  </div>
+
+  <div class="tools" id="tools">
+    <div class="chip" data-tool="calc"><span class="ico">🧮</span>Calculator</div>
+    <div class="chip" data-tool="clock"><span class="ico">🕒</span>Date &amp; Time</div>
+    <div class="chip" data-tool="todo"><span class="ico">✅</span>To‑Do</div>
+    <div class="chip" data-tool="wiki"><span class="ico">📖</span>Wikipedia</div>
+  </div>
+
+  <div class="chatwrap">
+    <div class="chat" id="chat"></div>
+    <form id="form">
+      <input id="input" type="text" autocomplete="off"
+        placeholder="Try: calculate 12*8, add task buy milk, who is Alan Turing..." />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <footer>Runs entirely in your browser — no server, no API key required.</footer>
+</div>
+
+<script>
+  // ---------------- TOOLS (same logic as agent.py) ----------------
+  let todoList = [];
+
+  function calculate(expr){
+    expr = expr.trim();
+    const allowed = /^[0-9+\-*/(). ]+$/;
+    if(!expr || !allowed.test(expr)) return "Sorry, I can only do basic math like + - * /.";
+    try{
+      const result = Function('"use strict"; return (' + expr + ')')();
+      if(typeof result !== "number" || !isFinite(result)) throw new Error();
+      return "Result: " + result;
+    }catch(e){
+      return "Sorry, I couldn't calculate that.";
+    }
+  }
+
+  function getDateTime(){
+    const now = new Date();
+    const opts = {weekday:"long", year:"numeric", month:"long", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:true};
+    return "Current date & time: " + now.toLocaleString("en-US", opts);
+  }
+
+  function addTask(task){
+    task = task.trim();
+    if(!task) return "Please tell me what task to add.";
+    todoList.push(task);
+    return "Added to your to-do list: '" + task + "'";
+  }
+
+  function viewTasks(){
+    if(todoList.length === 0) return "Your to-do list is empty.";
+    return "Your tasks:\n" + todoList.map((t,i)=> (i+1) + ". " + t).join("\n");
+  }
+
+  async function searchWikipedia(query){
+    query = query.trim();
+    if(!query) return "Please tell me what to search for.";
+    try{
+      let resp = await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(query));
+      if(resp.ok){
+        const data = await resp.json();
+        if(data.extract) return shorten(data.extract);
+      }
+      // fallback: opensearch to find the closest matching title
+      const sresp = await fetch("https://en.wikipedia.org/w/api.php?action=opensearch&search=" +
+        encodeURIComponent(query) + "&limit=1&namespace=0&format=json&origin=*");
+      const sdata = await sresp.json();
+      const title = sdata && sdata[1] && sdata[1][0];
+      if(title){
+        const resp2 = await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title));
+        if(resp2.ok){
+          const data2 = await resp2.json();
+          if(data2.extract) return shorten(data2.extract);
+        }
+      }
+      return "Sorry, I couldn't find a Wikipedia page for '" + query + "'.";
+    }catch(e){
+      return "Sorry, couldn't find info on that (check your internet connection).";
+    }
+  }
+  function shorten(extract){
+    const parts = extract.split(". ");
+    return parts.slice(0,2).join(". ") + (parts.length > 2 ? "." : "");
+  }
+
+  // ---------------- DECISION ENGINE ----------------
+  async function decideAction(userInput){
+    const text = userInput.toLowerCase();
+
+    if(text.includes("add task") || text.includes("remind me to")){
+      const key = text.includes("add task") ? "add task" : "remind me to";
+      const task = text.split(key)[1] || "";
+      return {tool:"todo", response: addTask(task)};
+    }
+    if(text.includes("show task") || text.includes("my task") || text.includes("todo") || text.includes("to-do")){
+      return {tool:"todo", response: viewTasks()};
+    }
+    if(/[+\-*/]/.test(text) || text.includes("calculate") || text.includes("calc")){
+      const expr = text.replace(/[^0-9+\-*/(). ]/g, "");
+      return {tool:"calc", response: calculate(expr)};
+    }
+    if(text.includes("time") || text.includes("date")){
+      return {tool:"clock", response: getDateTime()};
+    }
+    if(text.includes("who is") || text.includes("what is") || text.includes("search")){
+      const topic = text.replace("who is","").replace("what is","").replace("search","");
+      return {tool:"wiki", response: await searchWikipedia(topic)};
+    }
+    return {tool:null, response:
+      "I'm not sure how to help with that yet. Try things like:\n" +
+      "  'what is the time'\n  'calculate 12*8'\n  'add task buy milk'\n  'show tasks'\n  'who is Alan Turing'"};
+  }
+
+  // ---------------- UI WIRING ----------------
+  const chat = document.getElementById("chat");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const stages = document.querySelectorAll(".stage");
+  const chips = document.querySelectorAll(".chip");
+
+  function addMessage(who, text){
+    const div = document.createElement("div");
+    div.className = "msg " + who;
+    div.innerHTML = '<span class="who">' + (who === "you" ? "You" : "Agent") + '</span><span class="bubble"></span>';
+    div.querySelector(".bubble").textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  function setStage(name){
+    stages.forEach(s => s.classList.toggle("active", s.dataset.stage === name));
+  }
+  function clearStages(){ stages.forEach(s => s.classList.remove("active")); }
+  function fireChip(tool){
+    chips.forEach(c => c.classList.toggle("fire", c.dataset.tool === tool));
+    if(tool) setTimeout(() => chips.forEach(c => c.classList.remove("fire")), 1400);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if(!text) return;
+    input.value = "";
+    addMessage("you", text);
+
+    setStage("perceive"); await sleep(180);
+    setStage("decide");   await sleep(180);
+    setStage("act");
+
+    const {tool, response} = await decideAction(text);
+    fireChip(tool);
+
+    setStage("respond"); await sleep(150);
+    addMessage("agent", response);
+    clearStages();
+  });
+
+  addMessage("agent",
+    "Hi! I'm your personal assistant agent.\n" +
+    "Try: 'what is the time', 'calculate 5*7', 'add task buy milk',\n" +
+    "     'show tasks', 'who is Alan Turing'");
+</script>
+</body>
+</html>
