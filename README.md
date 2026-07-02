@@ -42,7 +42,7 @@ flowchart LR
 
 ## 🌐 Live Demo
 
-**[➡️ Open the live web app HERE](your-github-pages-link-goes-here)**
+**[➡️ Open the live web app HERE](https://harshasri1011.github.io/-smart-assistant-agent/)**
 
 A browser-based version (`index.html`) visualizes the agent's Perceive → Decide → Act → Respond pipeline live as you chat with it. Runs entirely client-side — no server, no API key.
 
