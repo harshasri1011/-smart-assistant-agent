@@ -124,6 +124,6 @@ python agent.py
 
 ## 👤 Author
 
-**[Your Name]**
-[Your College Name] — [Course/Department]
-Mini Project, [Academic Year]
+**[D.HARSHA SRI]**
+[DADI INSTITUTE OF ENGINEERING AND TECHNOLOGY] — [CSDM]
+Mini Project, [2023-2027]
